@@ -77,22 +77,38 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { title: "Palawan Expedition: El Nido to Coron by boat | Mad Monkey" },
+      {
+        name: "description",
+        content:
+          "3 days, 2 nights island hopping between El Nido and Coron with Mad Monkey. Beach camps, snorkelling, cliff jumping, free rum and a crew of new mates. ₱19,000 all in.",
+      },
+      { name: "theme-color", content: "#87BBD7" },
+      { property: "og:title", content: "Mad Monkey Palawan Expedition: El Nido ⇄ Coron" },
+      {
+        property: "og:description",
+        content:
+          "More than island hopping. Three days lost in Palawan: remote islands, beach camps, and a crew that feels like family.",
+      },
       { property: "og:type", content: "website" },
+      // No og:image here: Lovable hosting injects the project's social preview.
+      // public/og.jpg is ready to set as that preview (it needs an absolute URL).
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: `${import.meta.env.BASE_URL}favicon.png`, type: "image/png" },
+      { rel: "apple-touch-icon", href: `${import.meta.env.BASE_URL}apple-touch-icon.png` },
     ],
   }),
   shellComponent: RootShell,
