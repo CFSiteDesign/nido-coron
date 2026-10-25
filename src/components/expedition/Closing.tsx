@@ -1,6 +1,6 @@
 import { ArrowRight, Instagram, MessageCircle } from "lucide-react";
 import { INSTAGRAM_URL, WHATSAPP_NUMBER, chatLink } from "@/data/expedition";
-import { Badge } from "./Badge";
+import logo from "@/assets/mad-monkey-logo.png";
 import { useBooking } from "./Booking";
 import { LoopVideo } from "./LoopVideo";
 
@@ -52,8 +52,14 @@ export function Footer() {
   return (
     <footer className="bg-sand px-3 pb-24 pt-10 md:px-6 md:pb-12 md:pt-14">
       <div className="mx-auto grid max-w-[1320px] grid-cols-12 gap-y-8 md:gap-x-10">
-        <div className="col-span-12 flex items-center gap-4 md:col-span-5">
-          <Badge className="size-24 shrink-0" />
+        <div className="col-span-12 flex flex-col gap-4 sm:flex-row sm:items-center md:col-span-5">
+          <img
+            src={logo}
+            alt="Mad Monkey"
+            className="h-12 w-auto self-start sm:self-center"
+            width={600}
+            height={226}
+          />
           <p className="leading-snug">
             <span className="block text-lg font-extrabold">Mad Monkey Palawan Expedition</span>
             <span className="fine block text-ink-soft">

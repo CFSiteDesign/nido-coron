@@ -44,8 +44,8 @@ export function Hero() {
           </figure>
         </div>
 
-        <div className="relative z-10 mt-5 md:-mt-[calc(min(6.5vw,7.2rem)*0.34)]">
-          <h1 className="display text-[clamp(3rem,14vw,5rem)] text-midnight md:text-[min(6.5vw,7.2rem)]">
+        <div className="relative mt-5 md:mt-8">
+          <h1 className="display text-[clamp(3rem,14vw,5rem)] text-midnight md:text-[min(6.5vw,5.85rem)]">
             <span className="block">
               More than island hopping
               <span

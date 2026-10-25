@@ -2,7 +2,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PRICE_PHP, formatPeso } from "@/data/expedition";
 import { cn } from "@/lib/utils";
-import { Badge } from "./Badge";
+import logo from "@/assets/mad-monkey-logo.png";
 import { useBooking } from "./Booking";
 
 const LINKS = [
@@ -24,11 +24,17 @@ export function Nav() {
       >
         <a
           href="#top"
-          className="flex items-center gap-2.5"
+          className="flex items-center gap-3 pl-2 md:gap-4 md:pl-3"
           aria-label="Mad Monkey Palawan Expedition, back to top"
         >
-          <Badge className="-mb-6 size-[4.6rem] drop-shadow-[0_6px_10px_rgba(19,36,65,0.25)] md:-mb-8 md:size-[5.6rem]" />
-          <span className="hidden leading-tight sm:block">
+          <img
+            src={logo}
+            alt="Mad Monkey"
+            className="h-9 w-auto md:h-11"
+            width={600}
+            height={226}
+          />
+          <span className="hidden border-l border-midnight/25 pl-3 leading-tight sm:block md:pl-4">
             <span className="block text-[0.95rem] font-extrabold tracking-tight">
               Palawan Expedition
             </span>
