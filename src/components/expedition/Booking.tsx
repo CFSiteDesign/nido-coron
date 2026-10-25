@@ -1,10 +1,12 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Loader2, Minus, Plus, X } from "lucide-react";
 import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type FormEvent,
@@ -22,6 +24,7 @@ import {
 } from "@/data/expedition";
 import { createCheckout } from "@/lib/booking.functions";
 import { cn } from "@/lib/utils";
+import { AVAILABILITY_KEY, seatsLabel, useAvailability } from "./useAvailability";
 
 type OpenOptions = { direction?: Direction; departureId?: string };
 const BookingContext = createContext<(opts?: OpenOptions) => void>(() => {});
@@ -72,11 +75,22 @@ function BookingForm({ preset }: { preset: OpenOptions }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "not_live" | "error" | "unavailable">(
-    "idle",
-  );
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "not_live" | "error" | "unavailable" | "sold_out"
+  >("idle");
+  const [spotsLeftOnFail, setSpotsLeftOnFail] = useState(0);
+  const availability = useAvailability();
+  const queryClient = useQueryClient();
 
   const selected = departures.find((d) => d.id === departureId);
+  const left = selected ? availability?.[selected.id] : undefined;
+  const soldOut = left === 0;
+  const maxGuests = Math.max(1, Math.min(MAX_GUESTS_PER_BOOKING, left ?? MAX_GUESTS_PER_BOOKING));
+
+  // Keep the group size inside what's actually left on the chosen date.
+  useEffect(() => {
+    setGuests((g) => Math.min(g, maxGuests));
+  }, [maxGuests]);
   const total = PRICE_PHP * guests;
   const route = ROUTES[direction];
   const chat = chatLink(
@@ -101,6 +115,12 @@ function BookingForm({ preset }: { preset: OpenOptions }) {
       });
       if (res.ok) {
         window.location.assign(res.url);
+        return;
+      }
+      if (res.reason === "sold_out") {
+        setSpotsLeftOnFail(res.seatsLeft);
+        setStatus("sold_out");
+        void queryClient.invalidateQueries({ queryKey: AVAILABILITY_KEY });
         return;
       }
       setStatus(
@@ -167,25 +187,33 @@ function BookingForm({ preset }: { preset: OpenOptions }) {
           <legend className="kicker mb-2.5 text-ink-soft">2. Pick a departure</legend>
           {departures.length ? (
             <div className="flex flex-wrap gap-2">
-              {departures.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => {
-                    setDepartureId(d.id);
-                    setStatus("idle");
-                  }}
-                  aria-pressed={departureId === d.id}
-                  className={cn(
-                    "rounded-full px-4 py-2.5 text-sm font-semibold transition-colors",
-                    departureId === d.id
-                      ? "bg-chartreuse text-midnight shadow-[inset_0_0_0_1.5px_var(--midnight)]"
-                      : "bg-sand hover:bg-powder-soft",
-                  )}
-                >
-                  {formatDate(d.date, true)}
-                </button>
-              ))}
+              {departures.map((d) => {
+                const seats = availability?.[d.id];
+                const note = seatsLabel(seats);
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    disabled={seats === 0}
+                    onClick={() => {
+                      setDepartureId(d.id);
+                      setStatus("idle");
+                    }}
+                    aria-pressed={departureId === d.id}
+                    className={cn(
+                      "rounded-full px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 disabled:line-through",
+                      departureId === d.id
+                        ? "bg-chartreuse text-midnight shadow-[inset_0_0_0_1.5px_var(--midnight)]"
+                        : "bg-sand hover:bg-powder-soft",
+                    )}
+                  >
+                    {formatDate(d.date, true)}
+                    {note && (
+                      <span className="ml-1.5 font-bold text-lapis no-underline">· {note}</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <p className="fine text-ink-soft">
@@ -212,9 +240,9 @@ function BookingForm({ preset }: { preset: OpenOptions }) {
             </output>
             <button
               type="button"
-              onClick={() => setGuests((g) => Math.min(MAX_GUESTS_PER_BOOKING, g + 1))}
+              onClick={() => setGuests((g) => Math.min(maxGuests, g + 1))}
               className="grid size-11 place-items-center rounded-full bg-sand hover:bg-powder-soft disabled:opacity-40"
-              disabled={guests >= MAX_GUESTS_PER_BOOKING}
+              disabled={guests >= maxGuests}
               aria-label="One more guest"
             >
               <Plus className="size-4" />
@@ -260,6 +288,13 @@ function BookingForm({ preset }: { preset: OpenOptions }) {
             </a>
           </Notice>
         )}
+        {status === "sold_out" && (
+          <Notice>
+            {spotsLeftOnFail === 0
+              ? "Someone just grabbed the last spots on that date. Pick another departure above."
+              : `Only ${spotsLeftOnFail} spot${spotsLeftOnFail === 1 ? "" : "s"} left on that date. Bring your group down to ${spotsLeftOnFail} or pick another departure.`}
+          </Notice>
+        )}
         {status === "unavailable" && (
           <Notice>That departure has just closed. Pick another date above.</Notice>
         )}
@@ -289,7 +324,7 @@ function BookingForm({ preset }: { preset: OpenOptions }) {
         <button
           type="submit"
           className="btn-cta w-full disabled:opacity-50"
-          disabled={!selected || status === "sending"}
+          disabled={!selected || soldOut || status === "sending"}
         >
           {status === "sending" ? (
             <>
@@ -302,7 +337,7 @@ function BookingForm({ preset }: { preset: OpenOptions }) {
           )}
         </button>
         <p className="fine mt-2 text-center text-ink-soft">
-          Card payment by Stripe. Everything on the page is included.
+          Card payment by Stripe. Your spots are held for 30 minutes while you pay.
         </p>
       </div>
     </form>

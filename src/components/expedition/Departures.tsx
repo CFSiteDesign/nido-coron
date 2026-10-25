@@ -14,6 +14,7 @@ import { asset } from "@/lib/asset";
 import { captureLead } from "@/lib/booking.functions";
 import { cn } from "@/lib/utils";
 import { useBooking } from "./Booking";
+import { seatsLabel, useAvailability } from "./useAvailability";
 import { Reveal } from "./Reveal";
 import { Wave } from "./Wave";
 
@@ -32,6 +33,7 @@ const CARDS: { direction: Direction; image: string; alt: string }[] = [
 
 export function Departures() {
   const book = useBooking();
+  const availability = useAvailability();
 
   return (
     <section
@@ -82,17 +84,27 @@ export function Departures() {
                   <p className="kicker mt-5 text-lapis">Next departures</p>
                   {dates.length ? (
                     <ul className="mt-2.5 flex flex-wrap gap-2">
-                      {dates.map((d) => (
-                        <li key={d.id}>
-                          <button
-                            type="button"
-                            onClick={() => book({ direction: card.direction, departureId: d.id })}
-                            className="rounded-full bg-sand px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-chartreuse"
-                          >
-                            {formatDate(d.date, d.date.startsWith("2027"))}
-                          </button>
-                        </li>
-                      ))}
+                      {dates.map((d) => {
+                        const seats = availability?.[d.id];
+                        const note = seatsLabel(seats);
+                        return (
+                          <li key={d.id}>
+                            <button
+                              type="button"
+                              disabled={seats === 0}
+                              onClick={() => book({ direction: card.direction, departureId: d.id })}
+                              className="rounded-full bg-sand px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-chartreuse disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-sand"
+                            >
+                              <span className={seats === 0 ? "line-through" : undefined}>
+                                {formatDate(d.date, d.date.startsWith("2027"))}
+                              </span>
+                              {note && (
+                                <span className="ml-1.5 font-bold text-lapis">· {note}</span>
+                              )}
+                            </button>
+                          </li>
+                        );
+                      })}
                     </ul>
                   ) : (
                     <p className="fine mt-2 text-ink-soft">New dates dropping soon.</p>
