@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792902695192,
+      "tag": "0000_expedition_bookings_and_leads",
+      "breakpoints": true
+    }
+  ]
+}
