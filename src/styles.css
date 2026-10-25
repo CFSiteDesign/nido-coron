@@ -257,6 +257,26 @@
     line-height: 1.2;
   }
 
+  /* Hero: white outline on the part of the headline that sits on the group
+     photo. The photo spans 7 of 12 grid columns (1rem gaps) and the headline
+     is pulled up 0.34em over it, so the clip keeps exactly that band. */
+  .hero-photo-outline {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .hero-photo-outline {
+      --photo-w: calc((100% - 11rem) * 7 / 12 + 6rem);
+      display: block;
+      position: absolute;
+      inset: 0;
+      color: transparent;
+      -webkit-text-stroke: 0.11em #fff;
+      pointer-events: none;
+      user-select: none;
+      clip-path: polygon(-1em -1em, var(--photo-w) -1em, var(--photo-w) 0.34em, -1em 0.34em);
+    }
+  }
+
   /* Scroll reveal. Content is visible by default; JS opts elements in. */
   .reveal-ready {
     opacity: 0;

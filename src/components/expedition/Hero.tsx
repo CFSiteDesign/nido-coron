@@ -44,13 +44,18 @@ export function Hero() {
           </figure>
         </div>
 
-        <div className="relative mt-5 md:mt-8">
+        <div className="relative z-10 mt-5 md:-mt-[calc(min(6.5vw,5.85rem)*0.34)]">
           <h1 className="display text-[clamp(3rem,14vw,5rem)] text-midnight md:text-[min(6.5vw,5.85rem)]">
-            <span className="block">
-              More than island hopping
+            <span className="relative block md:whitespace-nowrap">
+              {/* Same line again, stroked white and clipped to the photo, so only
+                  the letters sitting on the photo get an outline. */}
+              <span aria-hidden className="hero-photo-outline">
+                More than island hopping
+              </span>
+              <span className="relative">More than island hopping</span>
               <span
                 aria-hidden
-                className="ml-[0.18em] inline-block h-[0.085em] w-[0.42em] translate-y-[-0.3em] bg-midnight align-middle"
+                className="relative ml-[0.18em] inline-block h-[0.085em] w-[0.42em] translate-y-[-0.3em] bg-midnight align-middle"
               />
             </span>
             <span className="mt-[0.06em] block md:text-right">Three days lost in Palawan</span>
