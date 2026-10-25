@@ -14,13 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      expedition_bookings: {
+        Row: {
+          amount_php: number
+          created_at: string
+          departure_date: string
+          departure_id: string
+          direction: string
+          email: string
+          full_name: string
+          guests: number
+          hold_expires_at: string
+          id: string
+          paid_at: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          amount_php: number
+          created_at?: string
+          departure_date: string
+          departure_id: string
+          direction: string
+          email: string
+          full_name: string
+          guests: number
+          hold_expires_at: string
+          id?: string
+          paid_at?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          amount_php?: number
+          created_at?: string
+          departure_date?: string
+          departure_id?: string
+          direction?: string
+          email?: string
+          full_name?: string
+          guests?: number
+          hold_expires_at?: string
+          id?: string
+          paid_at?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      expedition_leads: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          interest: string
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          interest?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          interest?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reserve_expedition_seats: {
+        Args: {
+          p_amount_php: number
+          p_capacity: number
+          p_departure_date: string
+          p_departure_id: string
+          p_direction: string
+          p_email: string
+          p_full_name: string
+          p_guests: number
+          p_hold_until: string
+          p_whatsapp: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
