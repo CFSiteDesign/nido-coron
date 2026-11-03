@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { verifyStripeSignature } from "./stripe.server";
+import { isSessionPaid, verifyStripeSignature } from "./stripe.server";
 
 const secret = "whsec_test_secret";
 const payload = JSON.stringify({ id: "evt_1", type: "checkout.session.completed" });
@@ -51,5 +51,21 @@ describe("verifyStripeSignature", () => {
   it("rejects a missing or malformed header", async () => {
     expect(await verifyStripeSignature(payload, null, secret)).toBe(false);
     expect(await verifyStripeSignature(payload, "garbage", secret)).toBe(false);
+  });
+});
+
+describe("isSessionPaid", () => {
+  it("counts a paid session", () => {
+    expect(isSessionPaid({ status: "complete", payment_status: "paid" })).toBe(true);
+  });
+
+  it("counts a completed checkout that a 100% off promo code made free", () => {
+    expect(isSessionPaid({ status: "complete", payment_status: "no_payment_required" })).toBe(true);
+  });
+
+  it("does not count an unpaid, open or expired session", () => {
+    expect(isSessionPaid({ status: "open", payment_status: "unpaid" })).toBe(false);
+    expect(isSessionPaid({ status: "expired", payment_status: "unpaid" })).toBe(false);
+    expect(isSessionPaid({ status: "open", payment_status: "no_payment_required" })).toBe(false);
   });
 });

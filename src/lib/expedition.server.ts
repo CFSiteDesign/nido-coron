@@ -6,6 +6,7 @@ import { MAX_GUESTS_PER_TRIP } from "@/data/expedition";
 import {
   expireCheckoutSession,
   getCheckoutSession,
+  isSessionPaid,
   serverEnv,
   type CheckoutSession,
 } from "./stripe.server";
@@ -84,7 +85,7 @@ export async function applySessionOutcome(session: CheckoutSession, failed = fal
   const bookingId = session.client_reference_id ?? session.metadata?.["booking_id"];
   if (!bookingId) return null;
 
-  if (session.payment_status === "paid") {
+  if (isSessionPaid(session)) {
     // A real payment always wins, even on a hold we had already let go.
     await bookings()
       .update({

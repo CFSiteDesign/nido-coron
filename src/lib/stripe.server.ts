@@ -61,6 +61,15 @@ export async function stripeRequest<T>(
   return json;
 }
 
+// True once the guest owes nothing more: paid in full, or a completed checkout
+// that a 100% off promo code brought down to zero.
+export function isSessionPaid(session: Pick<CheckoutSession, "status" | "payment_status">) {
+  return (
+    session.payment_status === "paid" ||
+    (session.status === "complete" && session.payment_status === "no_payment_required")
+  );
+}
+
 export function getCheckoutSession(id: string) {
   return stripeRequest<CheckoutSession>("GET", `checkout/sessions/${encodeURIComponent(id)}`);
 }
