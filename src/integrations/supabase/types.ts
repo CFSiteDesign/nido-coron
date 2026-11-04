@@ -17,6 +17,7 @@ export type Database = {
       expedition_bookings: {
         Row: {
           amount_php: number
+          booking_emails_sent_at: string | null
           created_at: string
           departure_date: string
           departure_id: string
@@ -35,6 +36,7 @@ export type Database = {
         }
         Insert: {
           amount_php: number
+          booking_emails_sent_at?: string | null
           created_at?: string
           departure_date: string
           departure_id: string
@@ -53,6 +55,7 @@ export type Database = {
         }
         Update: {
           amount_php?: number
+          booking_emails_sent_at?: string | null
           created_at?: string
           departure_date?: string
           departure_id?: string
