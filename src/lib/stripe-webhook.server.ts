@@ -4,7 +4,12 @@
 //   checkout.session.async_payment_succeeded, checkout.session.async_payment_failed,
 //   charge.refunded
 // and put its signing secret in STRIPE_WEBHOOK_SECRET.
-import { applySessionOutcome, databaseConfigured, markRefunded } from "./expedition.server";
+import {
+  applySessionOutcome,
+  databaseConfigured,
+  markRefunded,
+  sendBookingEmails,
+} from "./expedition.server";
 import { serverEnv, verifyStripeSignature, type CheckoutSession } from "./stripe.server";
 
 type StripeEvent = { id: string; type: string; data: { object: Record<string, unknown> } };
@@ -28,9 +33,12 @@ export async function handleStripeWebhook(request: Request) {
     switch (event.type) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded":
-      case "checkout.session.expired":
-        await applySessionOutcome(event.data.object as unknown as CheckoutSession);
+      case "checkout.session.expired": {
+        const session = event.data.object as unknown as CheckoutSession;
+        await applySessionOutcome(session);
+        await sendBookingEmails(session);
         break;
+      }
       case "checkout.session.async_payment_failed":
         await applySessionOutcome(event.data.object as unknown as CheckoutSession, true);
         break;

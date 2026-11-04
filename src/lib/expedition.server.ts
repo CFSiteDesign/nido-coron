@@ -3,6 +3,7 @@
 // code; server functions load it with a dynamic import.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { MAX_GUESTS_PER_TRIP } from "@/data/expedition";
+import { emailConfigured, sendBookingConfirmation } from "./booking-email.server";
 import {
   expireCheckoutSession,
   getCheckoutSession,
@@ -107,6 +108,47 @@ export async function applySessionOutcome(session: CheckoutSession, failed = fal
   return data;
 }
 
+// Emails the guest and staff once a booking is paid. The success page, the
+// webhook and the reconcile pass can all report the same payment, so whichever
+// claims the row sends. If sending fails the claim is dropped and this throws,
+// which lets a Stripe webhook retry send them later.
+export async function sendBookingEmails(session: CheckoutSession) {
+  const bookingId = session.client_reference_id ?? session.metadata?.["booking_id"];
+  if (!bookingId || !isSessionPaid(session) || !emailConfigured()) return;
+
+  const { data: booking, error } = await bookings()
+    .update({ booking_emails_sent_at: new Date().toISOString() })
+    .eq("id", bookingId)
+    .eq("status", "paid")
+    .is("booking_emails_sent_at", null)
+    .select(
+      "id, full_name, email, whatsapp, direction, departure_id, departure_date, guests, amount_php",
+    )
+    .maybeSingle();
+  if (error) throw error;
+  if (!booking) return;
+
+  try {
+    await sendBookingConfirmation({
+      id: booking.id,
+      fullName: booking.full_name,
+      email: booking.email,
+      whatsapp: booking.whatsapp,
+      direction: booking.direction,
+      departureDate: booking.departure_date,
+      guests: booking.guests,
+      // What they actually paid, which a promo code can bring below the list price.
+      paidPhp: session.amount_total === null ? booking.amount_php : session.amount_total / 100,
+      seatsLeft: await seatsLeft(booking.departure_id),
+      paymentId: session.payment_intent,
+      test: !session.livemode,
+    });
+  } catch (err) {
+    await bookings().update({ booking_emails_sent_at: null }).eq("id", bookingId);
+    throw err;
+  }
+}
+
 export async function markRefunded(paymentIntentId: string) {
   await bookings()
     .update({ status: "refunded" })
@@ -135,6 +177,7 @@ export async function reconcileStaleHolds(departureId: string) {
       let session = await getCheckoutSession(row.stripe_session_id);
       if (session.status === "open") session = await expireCheckoutSession(session.id);
       await applySessionOutcome(session);
+      await sendBookingEmails(session);
     } catch (err) {
       // Leave it pending and try again on the next checkout.
       console.error("Couldn't reconcile booking", row.id, err);

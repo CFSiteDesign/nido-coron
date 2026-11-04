@@ -21,6 +21,8 @@ export type CheckoutSession = {
   status: "open" | "complete" | "expired";
   payment_status: "paid" | "unpaid" | "no_payment_required";
   payment_intent: string | null;
+  amount_total: number | null;
+  livemode: boolean;
   client_reference_id: string | null;
   metadata: Record<string, string> | null;
 };

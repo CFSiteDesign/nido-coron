@@ -139,6 +139,10 @@ export const confirmBooking = createServerFn({ method: "POST" })
     try {
       const session = await stripe.getCheckoutSession(data.sessionId);
       const booking = await db.applySessionOutcome(session);
+      // A failed email mustn't cost the guest their confirmation; the webhook retries it.
+      await db
+        .sendBookingEmails(session)
+        .catch((err) => console.error("Couldn't send booking emails", err));
       if (!booking) return { status: "unknown" };
       const direction = booking.direction === "coron-elnido" ? "coron-elnido" : "elnido-coron";
       return {
