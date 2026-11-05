@@ -16,7 +16,8 @@ import {
 import { serverEnv } from "./stripe.server";
 
 const SITE_URL = "https://coron-expedition-nest.lovable.app";
-const DEFAULT_FROM = "Mad Monkey Palawan Expedition <palawan@experience.madmonkeyhostels.com>";
+const DEFAULT_FROM =
+  "Mad Monkey Palawan Expedition <PalawanExpedition@experience.madmonkeyhostels.com>";
 const DEFAULT_STAFF = "cs@madmonkeyhostels.com";
 const GUEST_REPLY_TO = "cs@madmonkeyhostels.com";
 
