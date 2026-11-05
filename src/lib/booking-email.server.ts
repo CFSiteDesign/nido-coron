@@ -20,12 +20,17 @@ const DEFAULT_FROM = "Mad Monkey Palawan Expedition <palawan@experience.madmonke
 const DEFAULT_STAFF = "cs@madmonkeyhostels.com";
 const GUEST_REPLY_TO = "cs@madmonkeyhostels.com";
 
+// The site's tokens (src/styles.css) as hex, because email clients can't read oklch.
 const MIDNIGHT = "#132441";
 const CHARTREUSE = "#DAF561";
 const POWDER = "#87BBD7";
 const CREAM = "#FAF6F1";
-const SOFT = "#55617A";
-const LINE = "#E4DED5";
+const CARD = "#FDFBF9";
+const SOFT = "#4A5670";
+const LINE = "#DCDDDF";
+const NAV_RULE = "#6A95B2";
+const FONTS =
+  "https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&amp;family=Barlow+Condensed:wght@600&amp;display=swap";
 const DISPLAY = "'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif";
 const BODY = "Barlow,'Helvetica Neue',Arial,sans-serif";
 
@@ -97,16 +102,22 @@ function detailRows(rows: [string, string][]) {
 
 function shell(data: BookingEmailData, preheader: string, body: string) {
   const testBanner = data.test
-    ? `<tr><td style="background:${CHARTREUSE};padding:10px 28px;font:700 13px/1.4 ${BODY};color:${MIDNIGHT}">TEST BOOKING: sandbox payment, no real money moved. Please ignore.</td></tr>`
+    ? `<tr><td style="background:${MIDNIGHT};padding:10px 28px;font:700 13px/1.4 ${BODY};color:${CHARTREUSE}">TEST BOOKING: sandbox payment, no real money moved. Please ignore.</td></tr>`
     : "";
   return `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><link rel="stylesheet" href="${FONTS}"></head>
 <body style="margin:0;padding:0;background:${CREAM}">
 <div style="display:none;max-height:0;overflow:hidden">${esc(preheader)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM}"><tr><td align="center" style="padding:24px 12px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden">
-    <tr><td style="background:${POWDER};padding:18px 28px"><img src="${SITE_URL}/media/mad-monkey-logo.png" width="114" height="43" alt="Mad Monkey" style="display:block;border:0"></td></tr>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${CARD};border-radius:20px;overflow:hidden">
+    <tr><td style="background:${POWDER};padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+      <td style="padding-right:14px"><img src="${SITE_URL}/media/mad-monkey-logo.png" width="104" height="39" alt="Mad Monkey" style="display:block;border:0"></td>
+      <td style="border-left:1px solid ${NAV_RULE};padding-left:14px">
+        <div style="font:800 15px/1.25 ${BODY};letter-spacing:-0.01em;color:${MIDNIGHT}">Palawan Expedition</div>
+        <div style="font:13px/1.35 ${BODY};color:${MIDNIGHT}">El Nido ⇄ Coron</div>
+      </td>
+    </tr></table></td></tr>
     ${testBanner}
     <tr><td style="padding:28px">${body}</td></tr>
   </table>
@@ -116,8 +127,12 @@ function shell(data: BookingEmailData, preheader: string, body: string) {
 </html>`;
 }
 
-function headline(text: string) {
-  return `<h1 style="margin:0 0 12px;font:800 44px/1 ${DISPLAY};letter-spacing:-0.01em;text-transform:uppercase;color:${MIDNIGHT}">${esc(text)}</h1>`;
+// Same look as the booking panel and success notice on the site.
+function hero(title: string, intro: string) {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px"><tr><td style="background:${CHARTREUSE};border-radius:20px;padding:24px 22px">
+      <h1 style="margin:0 0 10px;font:600 48px/0.95 ${DISPLAY};letter-spacing:-0.005em;text-transform:uppercase;color:${MIDNIGHT}">${esc(title)}</h1>
+      <p style="margin:0;font:16px/1.55 ${BODY};color:${MIDNIGHT}">${esc(intro)}</p>
+    </td></tr></table>`;
 }
 
 function paragraph(html: string) {
@@ -125,7 +140,12 @@ function paragraph(html: string) {
 }
 
 function heading(text: string) {
-  return `<h2 style="margin:0 0 8px;font:800 22px/1.1 ${DISPLAY};text-transform:uppercase;color:${MIDNIGHT}">${esc(text)}</h2>`;
+  return `<h2 style="margin:0 0 8px;font:600 26px/1 ${DISPLAY};letter-spacing:-0.005em;text-transform:uppercase;color:${MIDNIGHT}">${esc(text)}</h2>`;
+}
+
+// The site's .btn-cta.
+function button(href: string, label: string) {
+  return `<a href="${esc(href)}" style="display:inline-block;background:${CHARTREUSE};border:1.5px solid ${MIDNIGHT};border-radius:999px;padding:13px 22px;font:700 15px/1.2 ${BODY};letter-spacing:0.01em;color:${MIDNIGHT};text-decoration:none">${esc(label)}</a>`;
 }
 
 const PACKING = FAQS.find((faq) => faq.q === "What should I pack?")?.a ?? "";
@@ -143,8 +163,10 @@ export function guestEmail(data: BookingEmailData): Email {
   const html = shell(
     data,
     `${spots} on ${route.label}, ${departs}. Briefing at 6PM the night before.`,
-    `${headline("You're on the boat!")}
-    ${paragraph(`Hi ${esc(firstName)}, you're booked on the Mad Monkey Palawan Expedition: three days and two nights by boat. Here's what you need to know.`)}
+    `${hero(
+      "You're on the boat!",
+      `Hi ${firstName}, you're booked on the Mad Monkey Palawan Expedition: three days and two nights by boat. Here's what you need to know.`,
+    )}
     ${detailRows([
       ["Route", esc(route.label)],
       ["Departs", esc(`${departs}, ${route.meet}`)],
@@ -153,16 +175,17 @@ export function guestEmail(data: BookingEmailData): Email {
       ["Paid", esc(paid)],
       ["Booking ref", esc(ref)],
     ])}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px"><tr><td style="background:${MIDNIGHT};border-radius:16px;padding:20px 22px">
-      <p style="margin:0 0 6px;font:700 12px/1.3 ${BODY};letter-spacing:0.08em;text-transform:uppercase;color:${CHARTREUSE}">Your briefing</p>
-      <p style="margin:0 0 8px;font:800 26px/1.1 ${DISPLAY};text-transform:uppercase;color:#ffffff">${esc(route.briefing)}</p>
-      <p style="margin:0;font:15px/1.5 ${BODY};color:#ffffff">That's ${esc(briefingNight)}. We sign waivers, run the safety talk and you meet the crew. First rum and coke is on us. It's mandatory: if you miss it, you'll sign in the morning before we go.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px"><tr><td style="background:${MIDNIGHT};border-radius:20px;padding:22px">
+      <p style="margin:0 0 8px;font:600 12px/1.3 ${BODY};letter-spacing:0.16em;text-transform:uppercase;color:${CHARTREUSE}">Your briefing</p>
+      <p style="margin:0 0 10px;font:600 30px/1 ${DISPLAY};letter-spacing:-0.005em;text-transform:uppercase;color:${CREAM}">${esc(route.briefing)}</p>
+      <p style="margin:0;font:15px/1.5 ${BODY};color:${CREAM}">That's ${esc(briefingNight)}. We sign waivers, run the safety talk and you meet the crew. First rum and coke is on us. It's mandatory: if you miss it, you'll sign in the morning before we go.</p>
     </td></tr></table>
     ${heading("What to pack")}
     ${paragraph(esc(PACKING))}
     ${heading("Not included")}
     ${paragraph(NOT_INCLUDED.map(esc).join("<br>"))}
-    ${paragraph(`We'll be in touch before the briefing. Questions? Reply to this email or <a href="${esc(chat.href)}" style="color:${MIDNIGHT};font-weight:700">${esc(chat.label)}</a>.`)}`,
+    ${paragraph("We'll be in touch before the briefing. Questions? Reply to this email, or:")}
+    ${button(chat.href, chat.label)}`,
   );
 
   const text = [
@@ -206,8 +229,10 @@ export function staffEmail(data: BookingEmailData): Email {
   const html = shell(
     data,
     `${data.fullName}, ${guests}, ${route.label}, ${departs}`,
-    `${headline("New booking")}
-    ${paragraph("Paid and confirmed. Please get this booked in. Replying to this email goes straight to the guest.")}
+    `${hero(
+      "New booking",
+      "Paid and confirmed. Please get this booked in. Replying to this email goes straight to the guest.",
+    )}
     ${detailRows([
       ["Guest", esc(data.fullName)],
       [

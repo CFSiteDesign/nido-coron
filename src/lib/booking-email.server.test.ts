@@ -98,6 +98,27 @@ describe("both emails", () => {
       expect(subject + html + text).not.toContain("—");
     }
   });
+
+  it("keeps to the site's brand", () => {
+    const palette = [
+      "#132441",
+      "#DAF561",
+      "#87BBD7",
+      "#FAF6F1",
+      "#FDFBF9",
+      "#4A5670",
+      "#DCDDDF",
+      "#6A95B2",
+    ];
+    for (const email of emails) {
+      const { html } = email({ ...booking, test: true });
+      for (const colour of html.match(/#[0-9a-f]{3,8}\b/gi) ?? []) {
+        expect(palette).toContain(colour);
+      }
+      expect(html).toContain("family=Barlow+Condensed");
+      expect(html).toContain("Palawan Expedition</div>");
+    }
+  });
 });
 
 describe("staffEmails", () => {
